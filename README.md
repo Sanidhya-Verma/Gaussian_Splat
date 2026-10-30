@@ -51,7 +51,7 @@ Close points get tiny splats for sharp detail, and far points get wider splats s
 
 | Constant Scale (Broken / Too Big/Small) | Adaptive Depth Scaling ($Z / f_x$) (Fixed) |
 | :---: | :---: |
-| ![Constant Scale](assets/wave_broken_constant_no_filter.png) | ![Adaptive Scale](assets/wave_fixed_adaptive_filtered.png) |
+| ![Constant Scale](assets/wave_BROKEN_constant_no_filter.png) | ![Adaptive Scale](assets/wave_FIXED_adaptive_filtered.png) |
 | *Constant radius leaves massive holes in far walls & huge blobs up close* | *Radius grows dynamically with depth $Z$, keeping walls solid* |
 
 ### Problem 3: The "Venetian Blind" Gap Problem on Slanted Surfaces
