@@ -67,7 +67,7 @@ Instead of isotropic circular scaling, we measure the true 3D Euclidean distance
 
 | Simple Circular Adaptive ($Z / f_x$) | Better Anisotropic 3D Distance ($\text{dist}_u, \text{dist}_v$) |
 | :---: | :---: |
-| ![Simple Adaptive](assets/wave_FIXED_adaptive_filtered.png) | ![Better Adaptive](assets/wave_BETTER_ADAPTIVE_anisotropi.png) |
+| ![Simple Adaptive](assets/wave_FIXED_adaptive_filtered.png) | ![Better Adaptive](assets/wave_BETTER_ADAPTIVE_anisotropiC.png) |
 | *Notice the horizontal stripe gaps on slanted slopes* | *Solid, continuous surfels sealing all gaps* |
 
 ---
@@ -97,7 +97,7 @@ $Z = 1.0\text{ m}$ in front of a background wall at $Z = 3.0\text{ m}$?
 
 | Naive Neighbor Gradient (The Veil Bug) | Upwind One-Sided Gradient + Pruning (Fixed) |
 | :---: | :---: |
-| ![Veil Bug](assets/veil_bug.png) | ![Upwind Fixed](assets/pancake_test.png) |
+| ![Veil Bug](assets/wave_VEIL_BUG_unfiltered.png) | ![Upwind Fixed](assets/wave_COMPLETE_upwind_anisotropic.png) |
 
 ### Problem 2: How to Fix the Edge Without Losing Edge Accuracy
 How do we take care of these high-gradient edge pixels? 
