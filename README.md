@@ -67,7 +67,7 @@ Instead of isotropic circular scaling, we measure the true 3D Euclidean distance
 
 | Simple Circular Adaptive ($Z / f_x$) | Better Anisotropic 3D Distance ($\text{dist}_u, \text{dist}_v$) |
 | :---: | :---: |
-| ![Simple Adaptive](assets/wave_simple_adaptive.png) | ![Better Adaptive](assets/wave_better_anisotropic.png) |
+| ![Simple Adaptive](assets/wave_FIXED_adaptive_filtered.png) | ![Better Adaptive](assets/wave_BETTER_ADAPTIVE_anisotropi.png) |
 | *Notice the horizontal stripe gaps on slanted slopes* | *Solid, continuous surfels sealing all gaps* |
 
 ---
