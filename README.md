@@ -43,7 +43,7 @@ Close points get tiny splats for sharp detail, and far points get wider splats s
 
 ### Problem 3: The "Venetian Blind" Gap Problem on Slanted Surfaces
 While scaling radius by $Z/f_x$ solved the camera cone problem for walls facing the camera flat-on, it introduced a new artifact on sloped floors or waves:
-* **The Issue:** We previously set both pancake axes equal ($\text{scale}_0 = \text{scale}_1 = \log(Z / f_x)$). Horizontally across columns ($u$), pixels are spaced by $\approx 2.0\text{ cm}$. However, because the rover camera views the slanted wave at a grazing angle, neighboring rows ($v$) are stretched out to $\approx 3.5\text{ cm}$ in 3D space!
+* **The Issue:** We previously set both pancake axes equal (scale_0 = scale_1 = log(Z / fx)). Horizontally across columns ($u$), pixels are spaced by $\approx 2.0\text{ cm}$. However, because the rover camera views the slanted wave at a grazing angle, neighboring rows ($v$) are stretched out to $\approx 3.5\text{ cm}$ in 3D space!
 * **The Result:** Circular pancakes touched left-to-right (forming solid horizontal ribbons), but were too short front-to-back, leaving 120 horizontal stripe gaps looking like Venetian blinds.
 
 **The Anisotropic Solution (`wave_BETTER_ADAPTIVE_anisotropic.ply`):**
