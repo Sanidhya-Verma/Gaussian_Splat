@@ -114,9 +114,10 @@ back of the chair get drawn right on top of each other.
 Since we fix our camera locations on a ring around the object, we know each camera's **Position ($\vec{t}_{\text{cam}}$)** and **Rotation Matrix ($R_{\text{cam}}$)**.
 To bring every camera's local splats into one shared **World Coordinate System**, we do two things:
 1. **For Splat Positions ($\vec{P}$):** We rotate them *and* shift them by the camera's location in the room:
-   $$\vec{P}_{\text{world}} = R_{\text{cam}} \cdot \vec{P}_{\text{cam}} + \vec{t}_{\text{cam}}$$
+   P_world = R_cam * P_cam + t_cam
 2. **For Pancake Tilt / Tangent Vectors ($\vec{T}$):** Moving a camera across the room changes where a pancake sits, but doesn't change the angle it is tilted at—only turning the camera changes its angle. So surface tangents and normals are *only* rotated (no $+\vec{t}_{\text{cam}}$):
-   $$\vec{T}_{\text{world}} = R_{\text{cam}} \cdot \vec{T}_{\text{cam}}$$
+  T_world = R_cam * T_cam
+
 ### Cutting Overlaps: Voxel Deduplication Instead of Cloning
 Because our camera already has high pixel density, when 3 or 4 cameras look at the same tabletop, they stack multiple layers of pancakes on the exact same spot.
 Instead of traditional 3DGS splitting/cloning, we divide the 3D world into tiny **$8\text{ mm}$ cubes (voxels)** and keep only 1 Gaussian per cube (`np.unique`).
