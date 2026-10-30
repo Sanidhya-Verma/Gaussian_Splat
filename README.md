@@ -49,6 +49,11 @@ $$X = \frac{(u - c_x) \cdot Z}{f_x}, \quad Y = \frac{(v - c_y) \cdot Z}{f_y}$$
 **The Stage 01 Fix:** Instead of a constant scale, we make the Gaussian radius grow dynamically with depth ($\text{scale} \propto \frac{Z}{f_x}$). 
 Close points get tiny splats for sharp detail, and far points get wider splats so walls stay solid.
 
+| Constant Scale (Broken / Too Big/Small) | Adaptive Depth Scaling ($Z / f_x$) (Fixed) |
+| :---: | :---: |
+| ![Constant Scale](assets/wave_broken_constant_no_filter.png) | ![Adaptive Scale](assets/wave_fixed_adaptive_filtered.png) |
+| *Constant radius leaves massive holes in far walls & huge blobs up close* | *Radius grows dynamically with depth $Z$, keeping walls solid* |
+
 ### Problem 3: The "Venetian Blind" Gap Problem on Slanted Surfaces
 While scaling radius by $Z/f_x$ solved the camera cone problem for walls facing the camera flat-on, it introduced a new artifact on sloped floors or waves:
 * **The Issue:** We previously set both pancake axes equal (scale_0 = scale_1 = log(Z / fx)). Horizontally across columns ($u$), pixels are spaced by $\approx 2.0\text{ cm}$. However, because the rover camera views the slanted wave at a grazing angle, neighboring rows ($v$) are stretched out to $\approx 3.5\text{ cm}$ in 3D space!
@@ -62,7 +67,7 @@ Instead of isotropic circular scaling, we measure the true 3D Euclidean distance
 
 | Simple Circular Adaptive ($Z / f_x$) | Better Anisotropic 3D Distance ($\text{dist}_u, \text{dist}_v$) |
 | :---: | :---: |
-| ![Simple Adaptive](assets/wave_simple_adaptive.png) | ![Anisotropic Better](assets/wave_better_anisotropic.png) |
+| ![Simple Adaptive](assets/wave_simple_adaptive.png) | ![Better Adaptive](assets/wave_better_anisotropic.png) |
 | *Notice the horizontal stripe gaps on slanted slopes* | *Solid, continuous surfels sealing all gaps* |
 
 ---
