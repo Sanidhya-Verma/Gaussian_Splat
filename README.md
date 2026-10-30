@@ -30,6 +30,14 @@ If we want to represent a thin wavy sheet using spheres:
 | :---: | :---: |
 | ![Small Spheres](assets/spheres_small.png) | ![Big Spheres](assets/spheres_big.png) |
 
+### : So We Must Abandon Spheres for Surfels (Pancakes)
+Both spherical trade-offs prove a fundamental limitation of standard 3D Gaussian Splatting: **Spheres are volumetric.** They grow equally in depth thickness as they do in width. 
+
+* **The Fix:** To represent real-world surfaces (walls, floors, wavy terrain) without blurry marshmallows or screen-door gaps, we must stop using spherical Gaussians. 
+* **The Solution — Surfels (Pancakes):** We squash the third axis (`scale_2`) down to a paper-thin $0.5\text{ mm}$ and treat every Gaussian as a flat 2D elliptical disc oriented flush against the surface. This allows us to tile them tightly together like bathroom tiles, sealing all gaps while keeping sharp, crisp boundaries.
+
+  Surfels(assets/pancake_test.png)
+
 ### Problem 2: The Camera Cone Problem (Why Constant Scale Fails on Real Cameras)
 In a synthetic grid, points are spaced evenly. But a real camera works like a flashlight cone shooting rays out from a tiny pinhole lens:
 $$X = \frac{(u - c_x) \cdot Z}{f_x}, \quad Y = \frac{(v - c_y) \cdot Z}{f_y}$$
