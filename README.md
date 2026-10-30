@@ -41,6 +41,22 @@ $$X = \frac{(u - c_x) \cdot Z}{f_x}, \quad Y = \frac{(v - c_y) \cdot Z}{f_y}$$
 **The Stage 01 Fix:** Instead of a constant scale, we make the Gaussian radius grow dynamically with depth ($\text{scale} \propto \frac{Z}{f_x}$). 
 Close points get tiny splats for sharp detail, and far points get wider splats so walls stay solid.
 
+### Problem 3: The "Venetian Blind" Gap Problem on Slanted Surfaces
+While scaling radius by $Z/f_x$ solved the camera cone problem for walls facing the camera flat-on, it introduced a new artifact on sloped floors or waves:
+* **The Issue:** We previously set both pancake axes equal ($\text{scale}_0 = \text{scale}_1 = \log(Z / f_x)$). Horizontally across columns ($u$), pixels are spaced by $\approx 2.0\text{ cm}$. However, because the rover camera views the slanted wave at a grazing angle, neighboring rows ($v$) are stretched out to $\approx 3.5\text{ cm}$ in 3D space!
+* **The Result:** Circular pancakes touched left-to-right (forming solid horizontal ribbons), but were too short front-to-back, leaving 120 horizontal stripe gaps looking like Venetian blinds.
+
+**The Anisotropic Solution (`wave_BETTER_ADAPTIVE_anisotropic.ply`):**
+Instead of isotropic circular scaling, we measure the true 3D Euclidean distance to the column neighbor ($\text{dist}_u$) and row neighbor ($\text{dist}_v$) independently, and align the full 3D orthonormal rotation matrix $[e_u, e_v, \text{normal}]$:
+1. $\text{scale}_0 = \log(\text{dist}_u \cdot 0.85)$ — seals horizontal column gaps.
+2. $\text{scale}_1 = \log(\text{dist}_v \cdot 0.85)$ — seals vertical row-to-row gaps on steep slopes.
+3. $\text{scale}_2 = \log(0.0005)$ — keeps the surfel paper-thin ($0.5\text{ mm}$) along the surface normal.
+
+| Simple Circular Adaptive ($Z / f_x$) | Better Anisotropic 3D Distance ($\text{dist}_u, \text{dist}_v$) |
+| :---: | :---: |
+| ![Simple Adaptive](assets/wave_simple_adaptive.png) | ![Anisotropic Better](assets/wave_better_anisotropic.png) |
+| *Notice the horizontal stripe gaps on slanted slopes* | *Solid, continuous surfels sealing all gaps* |
+
 ---
 
 ## Folder 02: `02_anisotropic_veil_and_upwind_fix` — Pancakes (Surfels), The Veil Bug, and Upwind Gradients
