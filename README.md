@@ -74,15 +74,7 @@ Instead of isotropic circular scaling, we measure the true 3D Euclidean distance
 
 ## Folder 02: `02_anisotropic_veil_and_upwind_fix` — Pancakes (Surfels), The Veil Bug, and Upwind Gradients
 
-In `01_spherical_splats_baseline`, we got adaptive scaling working, but using spheres still couldn't solve the "thin sheet of paper" problem,
-and simple $Z/f_x$ scaling leaves gaps when a surface slopes steeply away from the camera.
-
-To fix this, we squash the thickness axis (`scale_2`) down to $0.5\text{ mm}$ so every sphere becomes a flat **anisotropic pancake (surfel)**. 
-Then, we calculate the true 3D distance to each pixel's neighbor (the gradient) so we know both:
-1. How wide to stretch the pancake so it touches its neighbor on steep slopes.
-2. How to tilt the pancake (using surface normals `nx, ny, nz` and quaternions `rot_0..3`) so it lies flat against the slope.
-
-**However, doing this introduced two brand-new problems:**
+In `01_spherical_splats_baseline`, we got adaptive scaling working, **However, doing this introduced two brand-new problems:**
 
 ### Problem 1: The "Veil Bug" at Object Edges
 When we set the Gaussian's scale based on the true 3D distance to its neighbor, what happens at the edge of two objects—say, a rock or chair placed at 
