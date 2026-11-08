@@ -39,6 +39,6 @@ if __name__ == "__main__":
     }
     save_splat_ply("wave_VEIL_BUG_unfiltered.ply", veil_data, overlap=0.85)
 
-    # 2. THE UPWIND FIX: Direct call to your clean src/engine.py (Upwind one-sided differences)
+    # 2. THE UPWIND FIX: Direct call to the clean implementation in src/engine.py (Upwind one-sided differences)
     upwind_data = extract_surfels(rgb, depth, intrinsics, jump_limit=0.08)
     save_splat_ply("wave_COMPLETE_upwind_anisotropic.ply", upwind_data, overlap=0.85)
