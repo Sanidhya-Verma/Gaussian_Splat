@@ -14,7 +14,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.engine import extract_surfels
 from src.writer import save_splat_ply
-from wave_broken_vs_fixed import make_wave_rgbd
+from .wave_broken_vs_fixed_adaptive import make_wave_rgbd
 
 
 if __name__ == "__main__":

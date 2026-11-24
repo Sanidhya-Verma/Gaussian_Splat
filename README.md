@@ -15,7 +15,7 @@ and how we solved them.
 
 ---
 
-## Folder 01: `01_spherical_splats_baseline` — From Constant Spheres to Adaptive Camera Scaling
+## Folder 01: `adaptive splats` — From Constant Spheres to Adaptive Camera Scaling
 
 When we first convert a basic point cloud into 3D Gaussian Splats, every point is just a round 3D sphere (`scale_0 = scale_1 = scale_2`) with no rotation. 
 Here we immediately run into two problems:
@@ -72,9 +72,9 @@ Instead of isotropic circular scaling, we measure the true 3D Euclidean distance
 
 ---
 
-## Folder 02: `02_anisotropic_veil_and_upwind_fix` — Pancakes (Surfels), The Veil Bug, and Upwind Gradients
+## Folder 02: `anisotropic surfels` — Pancakes (Surfels), The Veil Bug, and Upwind Gradients
 
-In `01_spherical_splats_baseline`, we got adaptive scaling working, **However, doing this introduced two brand-new problems:**
+In `adaptive splats`, we got adaptive scaling working, **However, doing this introduced two brand-new problems:**
 
 ### Problem 1: The "Veil Bug" at Object Edges
 When we set the Gaussian's scale based on the true 3D distance to its neighbor, what happens at the edge of two objects—say, a rock or chair placed at 
@@ -141,12 +141,11 @@ Instead of traditional 3DGS splitting/cloning, we divide the 3D world into tiny 
 
 ## Repository Structure
 
-* `01_spherical_splats_baseline/` — Shows constant-scale spheres vs. optical cone depth scaling ($Z/f_x$).
-* `02_anisotropic_veil_and_upwind_fix/` — Demonstrates the neighbor-gradient Veil Bug at edges and fixes it using one-sided upwind gradients + flying-pixel pruning.
-* `03_multiview_object_stitching/` — Simulates multi-angle RGB-D capture of a table & chair scene, transforms splats and normals into World coordinates,
-   and deduplicates overlaps on an 8mm voxel grid.
-* `src/rgbd_to_splat.py` — Core converter script that packs outputs into the full **62-property binary `.ply` layout**
-  (`x,y,z`, `nx,ny,nz`, `f_dc_0..2`, `f_rest_0..44`, `opacity`, `scale_0..2`, `rot_0..3`) required by strict viewers like **SuperSplat**.
+* `adaptive splats/` — Shows constant-scale spheres vs. optical cone depth scaling ($Z/f_x$).
+* `anisotropic surfels/` — Demonstrates the neighbor-gradient Veil Bug at edges and fixes it using one-sided upwind gradients + flying-pixel pruning.
+* `input/` — Multi-view RGB-D frames (`images/rgb/`, `images/depth/`) and camera odometry (`odometry/poses.json`, `transforms.json`).
+* `src/engine.py` & `src/writer.py` — Core geometric surfel extraction engine and 62-property binary `.ply` serializer.
+* `main.py` — Pipeline script that stitches multi-view images and odometry into `output/gaussian_splat_model.ply`.
 
 ## How to Run & View
 
