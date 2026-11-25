@@ -6,6 +6,7 @@ and saves the final 3D Gaussian Splat (.ply) to output/.
 """
 
 import re
+import sys
 import json
 import argparse
 from pathlib import Path
@@ -24,7 +25,7 @@ def get_args():
     parser.add_argument("--frame", type=str, default=None, help="Optional single frame name/number to process")
     parser.add_argument("--voxel", type=float, default=0.008, help="Voxel size in meters for deduplication (default: 8mm)")
     parser.add_argument("--min_depth", type=float, default=0.25, help="Min depth threshold in meters")
-    parser.add_argument("--max_depth", type=float, default=4.5, help="Max depth threshold in meters")
+    parser.add_argument("--max_depth", type=float, default=6.0, help="Max depth threshold in meters")
     parser.add_argument("--jump_limit", type=float, default=0.08, help="Depth difference limit for edge filtering")
     parser.add_argument("--pointcloud", action="store_true", help="Also save a raw RGB point cloud PLY")
     return parser.parse_args()
@@ -44,6 +45,11 @@ def load_depth(path):
     return depth
 
 
+def _natural_key(path):
+    parts = re.split(r"(\d+)", path.stem)
+    return [int(p) if p.isdigit() else p.lower() for p in parts]
+
+
 def find_image_pairs(images_dir):
     p = Path(images_dir)
     # Checking if images_dir or images_dir/images has rgb and depth subfolders
@@ -61,8 +67,8 @@ def find_image_pairs(images_dir):
 
     if rgb_dir and depth_dir:
         exts = ("*.png", "*.jpg", "*.jpeg", "*.npy")
-        rgb_files = sorted([f for ext in exts for f in rgb_dir.glob(ext)])
-        depth_files = sorted([f for ext in exts for f in depth_dir.glob(ext)])
+        rgb_files = sorted([f for ext in exts for f in rgb_dir.glob(ext)], key=_natural_key)
+        depth_files = sorted([f for ext in exts for f in depth_dir.glob(ext)], key=_natural_key)
 
         if not rgb_files or not depth_files:
             raise FileNotFoundError(f"Missing images in {rgb_dir} or {depth_dir}")
@@ -89,7 +95,7 @@ def find_image_pairs(images_dir):
     if not p.is_dir():
         raise FileNotFoundError(f"Image directory not found: {p}")
 
-    all_files = sorted([f for f in p.iterdir() if f.is_file()])
+    all_files = sorted([f for f in p.iterdir() if f.is_file()], key=_natural_key)
     depth_files = [f for f in all_files if "depth" in f.stem.lower() or f.suffix == ".npy"]
     rgb_files = [f for f in all_files if f not in depth_files and f.suffix.lower() in [".png", ".jpg", ".jpeg"]]
 
@@ -114,13 +120,13 @@ def find_image_pairs(images_dir):
     return pairs
 
 
-def load_poses(pose_path, pairs):
+def load_poses(pose_path, pairs,n):
     if pose_path is None:
         for candidate in [
-            Path("input/odometry/poses.json"),
-            Path("input/odometry/transforms.json"),
-            Path("input/poses.json"),
-            Path("input/transforms.json"),
+            Path(f"input/odometry/poses_{n}.json"),
+            Path(f"input/odometry/transforms_{n}.json"),
+            Path(f"input/poses_{n}.json"),
+            Path(f"input/transforms_{n}.json"),
         ]:
             if candidate.is_file():
                 pose_path = candidate
@@ -184,23 +190,40 @@ def load_poses(pose_path, pairs):
                 mat = np.eye(4, dtype=np.float32)
             extracted_poses.append(mat)
 
-        if len(extracted_poses) == len(pairs):
-            return extracted_poses, intrinsics
-
-        # If counts differ, try matching by file_path or stem number
+        # Match frames by numeric ID (file_path, angle_deg, azimuth_deg, or frame index)
         poses = []
+        all_matched = True
         for rgb_path, _ in pairs:
             matched_mat = None
             nums = re.findall(r"\d+", rgb_path.stem)
-            num_id = int(nums[-1]) if nums else -1
-            for idx, item in enumerate(raw_frames):
-                item_str = str(item.get("file_path", "")) + f" {idx}"
-                item_nums = re.findall(r"\d+", item_str)
-                if item_nums and int(item_nums[-1]) == num_id:
-                    matched_mat = extracted_poses[idx]
-                    break
-            poses.append(matched_mat if matched_mat is not None else np.eye(4, dtype=np.float32))
-        return poses, intrinsics
+            num_id = int(nums[-1]) if nums else None
+            if num_id is not None:
+                for idx, item in enumerate(raw_frames):
+                    candidates = []
+                    if "angle_deg" in item:
+                        candidates.append(int(round(float(item["angle_deg"]))))
+                    if "azimuth_deg" in item:
+                        candidates.append(int(round(float(item["azimuth_deg"]))))
+                    if "file_path" in item:
+                        fp_nums = re.findall(r"\d+", str(item["file_path"]))
+                        if fp_nums:
+                            candidates.append(int(fp_nums[-1]))
+                    if not candidates:
+                        candidates.append(idx)
+                    if num_id in candidates:
+                        matched_mat = extracted_poses[idx]
+                        break
+            if matched_mat is None:
+                all_matched = False
+            poses.append(matched_mat)
+
+        if all_matched:
+            return poses, intrinsics
+
+        if len(extracted_poses) == len(pairs):
+            return extracted_poses, intrinsics
+
+        return [m if m is not None else np.eye(4, dtype=np.float32) for m in poses], intrinsics
 
     if isinstance(data, list):
         poses = [np.array(m, dtype=np.float32) for m in data]
@@ -229,7 +252,7 @@ def load_poses(pose_path, pairs):
 def get_intrinsics(width, height, custom=None):
     if custom is not None:
         return custom
-    # Default to 90 degree horizontal field of view
+    
     hfov_rad = np.deg2rad(90.0)
     fx = (width / 2.0) / np.tan(hfov_rad / 2.0)
     return (float(fx), float(fx), float(width / 2.0), float(height / 2.0))
@@ -250,12 +273,17 @@ def main():
         print(f"No valid image pairs found in '{args.images}' (frame filter: {args.frame}).")
         return
 
+    if args.poses is None and sys.stdin.isatty():
+        n = int(input("How many images are you selecting?: "))
+    else:
+        n = len(pairs)
+
     print(f"Loaded {len(pairs)} image pairs from {args.images}:")
     for rgb_p, depth_p in pairs:
         print(f"  {rgb_p.name} <-> {depth_p.name}")
 
     # Loading camera poses and optional intrinsics
-    poses, custom_intrinsics = load_poses(args.poses, pairs)
+    poses, custom_intrinsics = load_poses(args.poses, pairs,n)
 
     # Reading image data into frames list
     frames = []
