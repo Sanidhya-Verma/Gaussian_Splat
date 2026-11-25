@@ -19,7 +19,8 @@ from src.writer import save_splat_ply, save_pointcloud_ply
 
 def get_args():
     parser = argparse.ArgumentParser(description="Generate 3D Gaussian Splats from RGB-D images and odometry.")
-    parser.add_argument("--images", type=str, default="input/images", help="Path to images directory (default: input/images)")
+    parser.add_argument("--n", type=int, default=None, help="Number of images to test (e.g. 3 or 5)")
+    parser.add_argument("--images", type=str, default=None, help="Path to images directory (default: auto-selected from n or input/images)")
     parser.add_argument("--poses", type=str, default=None, help="Optional path to poses.json, transforms.json, or trajectory.log")
     parser.add_argument("--output", type=str, default="output/gaussian_splat_model.ply", help="Output .ply file path")
     parser.add_argument("--frame", type=str, default=None, help="Optional single frame name/number to process")
@@ -120,9 +121,11 @@ def find_image_pairs(images_dir):
     return pairs
 
 
-def load_poses(pose_path, pairs,n):
+def load_poses(pose_path, pairs, n):
     if pose_path is None:
         for candidate in [
+            Path(f"input_{n}/odometry/poses_{n}.json"),
+            Path(f"input_{n}/odometry/transforms_{n}.json"),
             Path(f"input/odometry/poses_{n}.json"),
             Path(f"input/odometry/transforms_{n}.json"),
             Path(f"input/poses_{n}.json"),
@@ -264,21 +267,34 @@ def main():
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Determining number of images
+    if args.n is not None:
+        n = args.n
+    elif args.images is None and args.poses is None:
+        n = int(input("How many images are you selecting?: "))
+    else:
+        n = None
+
+    if args.images is not None:
+        images_dir = args.images
+    elif n is not None and Path(f"input_{n}/images").is_dir():
+        images_dir = f"input_{n}/images"
+    else:
+        images_dir = "input/images"
+
     #Discovering RGB-D image pairs
-    pairs = find_image_pairs(args.images)
+    pairs = find_image_pairs(images_dir)
     if args.frame:
         pairs = [(r, d) for r, d in pairs if args.frame in r.stem]
 
     if not pairs:
-        print(f"No valid image pairs found in '{args.images}' (frame filter: {args.frame}).")
+        print(f"No valid image pairs found in '{images_dir}' (frame filter: {args.frame}).")
         return
 
-    if args.poses is None and sys.stdin.isatty():
-        n = int(input("How many images are you selecting?: "))
-    else:
+    if n is None:
         n = len(pairs)
 
-    print(f"Loaded {len(pairs)} image pairs from {args.images}:")
+    print(f"Loaded {len(pairs)} image pairs from {images_dir}:")
     for rgb_p, depth_p in pairs:
         print(f"  {rgb_p.name} <-> {depth_p.name}")
 
@@ -328,7 +344,6 @@ def main():
     total_splats = len(surfels["points"])
     print(f"Extracted {total_splats:,} surfels after voxel filtering ({args.voxel*1000:.0f}mm).")
 
-    # Saving binary 62-property PLY for SuperSplat
     save_splat_ply(str(output_path), surfels)
     print(f"Saved 3D Gaussian model to: {output_path}")
 
