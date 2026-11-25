@@ -40,13 +40,13 @@ if __name__ == "__main__":
     rgb, depth, intrinsics = make_wave_rgbd()
     fx = intrinsics[0]
 
-    # 1. BROKEN: Constant 1.2cm radius across the entire depth cone (no jump filter)
+    # BROKEN: Constant 1.2cm radius across the entire depth cone (no jump filter)
     surfels_broken = extract_surfels(rgb, depth, intrinsics, jump_limit=999.0)
     surfels_broken["scale_u"][:] = 0.012
     surfels_broken["scale_v"][:] = 0.012
     save_splat_ply("wave_BROKEN_constant_no_filter.ply", surfels_broken, overlap=1.0)
 
-    # 2. FIXED CAMERA CONE: Circular adaptive radius (Z / fx), leaves horizontal row gaps
+    #  FIXED CAMERA CONE: Circular adaptive radius (Z / fx), leaves horizontal row gaps
     surfels_iso = extract_surfels(rgb, depth, intrinsics, jump_limit=0.08)
     z_vals = -surfels_iso["points"][:, 2]  # Recover depth Z from cam_z = -depth
     circular_scale = (z_vals / fx).astype(np.float32)
